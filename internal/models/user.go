@@ -15,6 +15,7 @@ type User struct {
 
 	Name         string `gorm:"type:varchar(50);not null" json:"name"`           // 姓名
 	DepartmentID uint   `gorm:"not null;index" json:"department_id"`             // 所属部门ID
+	Ip           string `gorm:"type:varchar(50)" json:"ip"`                      // IP地址
 	EmployeeID   string `gorm:"type:varchar(50);uniqueIndex" json:"employee_id"` // 工号（可选）
 	Position     string `gorm:"type:varchar(100)" json:"position"`               // 岗位名称/描述
 

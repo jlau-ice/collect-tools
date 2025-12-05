@@ -3,16 +3,16 @@ package config
 import (
 	"fmt"
 	"os"
-	"strconv"
 
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 // Config 应用配置
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	Upload   UploadConfig
+	Server   ServerConfig   `mapstructure:"server"`
+	Database DatabaseConfig `mapstructure:"database"`
+	Upload   UploadConfig   `mapstructure:"upload"`
+	MinIo    MinIoConfig    `mapstructure:"minio"`
 }
 
 // ServerConfig 服务器配置
@@ -39,50 +39,37 @@ type UploadConfig struct {
 	MaxSize  int64  // 最大文件大小（字节）
 }
 
-var AppConfig *Config
+type MinIoConfig struct {
+	EndPoint   string
+	BucketName string
+	AccessKey  string
+	SecretKey  string
+}
 
 // LoadConfig 加载配置
-// LoadConfig 加载配置
-func LoadConfig() error {
-	// 尝试加载.env文件（如果存在）
-	_ = godotenv.Load()
-	// 默认文件最大大小（10MB）
-	defaultMaxSize := int64(10 * 1024 * 1024)
-	// 从环境变量获取 MaxSize，如果获取失败则使用默认值
-	maxSizeEnv := getEnv("UPLOAD_MAX_SIZE", strconv.FormatInt(defaultMaxSize, 10))
-	maxSize, err := strconv.ParseInt(maxSizeEnv, 10, 64)
-	if err != nil {
-		fmt.Printf("Warning: UPLOAD_MAX_SIZE is invalid, using default %d bytes\n", defaultMaxSize)
-		maxSize = defaultMaxSize
-	}
-	AppConfig = &Config{
-		Server: ServerConfig{
-			Port: getEnv("SERVER_PORT", "8080"),
-			Mode: getEnv("GIN_MODE", "debug"),
-		},
-		Database: DatabaseConfig{
-			// PgSQL 默认端口为 5432
-			Host:     getEnv("DB_HOST", "127.0.0.1"),
-			Port:     getEnv("DB_PORT", "5432"),
-			User:     getEnv("DB_USER", "postgres"),
-			Password: getEnv("DB_PASSWORD", "postgres"),
-			DBName:   getEnv("DB_NAME", "collect"),
-			// PgSQL 连接参数
-			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
-			TimeZone: getEnv("DB_TIME_ZONE", "Asia/Shanghai"),
-			Schema:   getEnv("DB_SCHEMA", "public"),
-		},
-		Upload: UploadConfig{
-			BasePath: getEnv("UPLOAD_BASE_PATH", "./uploads"),
-			MaxSize:  maxSize, // 使用解析后的值
-		},
-	}
+// 返回 *Config 以便依赖注入容器使用
+func LoadConfig() (*Config, error) {
+	v := viper.New()
+	v.SetConfigName("config")   // 配置文件名称(不带扩展名)
+	v.SetConfigType("yaml")     // 配置文件类型
+	v.AddConfigPath("./config") // config子目录
+	v.AddConfigPath(".")        // 当前目录
 
-	return nil
+	// 读取配置文件
+	if err := v.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("加载配置文件失败: %w", err)
+	}
+	// 支持环境变量覆盖配置（可选）
+	v.AutomaticEnv()
+
+	var cfg Config
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("配置绑定失败: %w", err)
+	}
+	return &cfg, nil
 }
 
 // GetDSN 获取数据库连接字符串
-// 修复后的 GetDSN 获取 PostgreSQL 数据库连接字符串
 func (c *DatabaseConfig) GetDSN() string {
 	// 使用标准的 key=value 格式，不需要额外的 'options=' 关键字包裹。
 	// search_path 应该直接作为 DSN 的一个参数。

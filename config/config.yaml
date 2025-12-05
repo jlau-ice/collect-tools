@@ -1,0 +1,23 @@
+server:
+  port: 8888
+  mode: debug
+
+database:
+  host: 127.0.0.1
+  port: 5432
+  user: postgres
+  password: postgres
+  dbName: collect
+  sslMode: disable
+  timeZone: Asia/Shanghai
+  schema: public
+
+upload:
+  basePath: ./uploads
+  maxSize: 10485760
+
+minio:
+  endPoint: https://img.dryice.icu
+  bucketName: asr
+  accessKey: V68TXxbCdGXZD3C8tIwX
+  secretKey: E0yP3UG2takf2e7pbE3MewHqHIM6dVGdu0HGIBim
