@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/jlau-ice/collect/internal/application/repository"
+	"github.com/jlau-ice/collect/internal/application/service"
 	"github.com/jlau-ice/collect/internal/config"
 	"github.com/jlau-ice/collect/internal/handler"
 	"github.com/jlau-ice/collect/internal/models"
-	"github.com/jlau-ice/collect/internal/repository"
 	"github.com/jlau-ice/collect/internal/router"
-	"github.com/jlau-ice/collect/internal/service"
 	"go.uber.org/dig"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -24,9 +24,9 @@ func BuildContainer(container *dig.Container) *dig.Container {
 	// 注册数据库初始化器
 	must(container.Provide(initDatabase))
 	// 注册仓储与服务
-	must(container.Provide(repository.NewDepartmentRepository))
-	must(container.Provide(service.NewDepartmentService))
-	must(container.Provide(handler.NewDepartmentHandler))
+	must(container.Provide(handler.NewUserHandler))
+	must(container.Provide(repository.NewUserRepository))
+	must(container.Provide(service.NewUserService))
 
 	// Router configuration
 	must(container.Provide(router.NewRouter))

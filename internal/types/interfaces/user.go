@@ -7,5 +7,9 @@ import (
 )
 
 type UserService interface {
-	Register(ctx context.Context, req types.User) (*types.User, error)
+	Register(ctx context.Context, req types.User) (id uint, err error)
+}
+
+type UserRepository interface {
+	Create(ctx context.Context, req types.User) (id uint, err error)
 }

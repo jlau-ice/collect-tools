@@ -8,11 +8,19 @@ import (
 	"github.com/jlau-ice/collect/internal/types/interfaces"
 )
 
-type AuthHandler struct {
+type UserHandler struct {
 	userService interfaces.UserService
 }
 
-func (h *AuthHandler) AddUser(c *gin.Context) {
+func NewUserHandler(
+	userService interfaces.UserService,
+) *UserHandler {
+	return &UserHandler{
+		userService: userService,
+	}
+}
+
+func (h *UserHandler) Register(c *gin.Context) {
 	ctx := c.Request.Context()
 	fmt.Print(ctx)
 	c.JSON(http.StatusCreated, nil)
